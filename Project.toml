@@ -1,0 +1,7 @@
+name = "NestedTests"
+uuid = "c7752788-e2db-4f03-8189-845608b41f97"
+authors = ["Oren Ben-Kiki <oren@ben-kiki.org>"]
+version = "0.1.0"
+
+[deps]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
