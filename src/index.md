@@ -1,7 +1,5 @@
 # NestedTests
 
-TODOX
-
 ```@docs
 NestedTests
 NestedTests.@nested_test
