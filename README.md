@@ -19,14 +19,17 @@ consider the following:
 ```julia
 @nested_test("top") do
     db = create_temporary_database()
+    @assert test_name() == "top"
     @test is_valid_database(db)
 
     @nested_test("simple operations") do
+        @assert test_name() == "top/simple operations"
         fill_simple_operations_data(db)
         @test simple_operations_work(db)
     end
 
     @nested_test("complex operations") do
+        @assert test_name() == "top/complex operations"
         fill_complex_operations_data(db)
         @test complex_operations_work(db)
     end
@@ -38,6 +41,9 @@ access to the variables introduced in their parent, following Julia's nested var
 cases to access the `db` variable from the top level test case. However, the framework will re-run things so that each
 of the leaf tests will get a fresh database, isolating the leaf tests from each other. If a parent test case fails for
 any reason (including failed `@test` assertions), then its child tests are skipped.
+
+You can also restrict the set of test cases that will be executed by specifying a list of prefixes, e.g.
+`test_prefixes(["top"])` will restrict the executed tests to only cases nested under `top`.
 
 ## Installation
 

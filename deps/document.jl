@@ -1,3 +1,7 @@
+# Build the documentations locally into `docs` so they will appear in the github pages. This way, in github we have the
+# head version documentation, while in the standard Julia packages documentation we have the documentation of the last
+# published version.
+
 using Documenter
 using Logging
 using LoggingExtras

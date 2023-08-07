@@ -1,6 +1,7 @@
 deps/.*
-*.jl.cov
+docs/build
 *.jl.*.cov
+*.jl.cov
 junk*
 .*.swo
 .*.swp

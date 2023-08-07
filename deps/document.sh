@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e -o pipefail
-rm -f docs/*.*
+rm -rf docs
+mkdir docs
 julia --color=yes deps/document.jl
-rm -f docs/*.jl docs/*.cov
 sed -i 's: on <span class="colophon-date" title="[^"]*">[^<]*</span>::' docs/*html
+sed -i 's:</h1>: (HEAD REVISION)</h1>:' docs/index.html
+rm -f docs/*.jl docs/*.cov
+cp deps/make.jl docs/make.jl
