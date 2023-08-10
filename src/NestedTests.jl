@@ -3,19 +3,24 @@ Run tests in nested environments.
 """
 module NestedTests
 
-export @nested_test
+export nested_test
 export test_name
 export test_prefixes
 
+using Printf
 using Test
 
 run_prefixes = Vector{Vector{SubString{String}}}()
+full_name = ""
 test_names = String[]
 this_test = Int[]
 next_test = Int[]
 depth = 0
+cases = 0
 errors = 0
-full_name = ""
+start_time_ns = UInt64(0)
+
+struct DoneNestedTestException <: Exception end
 
 """
     test_prefixes(prefixes::Vector{Union{String}})::Nothing
@@ -27,21 +32,6 @@ function test_prefixes(prefixes::Vector{String})::Nothing
     global run_prefixes
     run_prefixes = [split(prefix, "/") for prefix in prefixes]
     return nothing
-end
-
-"""
-    @nested_test(name::String) do ... end
-
-Run tests in a nested environment. The test can use any of the variables defined in its parent test(s). Any changes made
-to these variables will be isolated from other sibling nested tests in this level, but will be visible to descendant
-nested tests.
-"""
-macro nested_test(code, name)
-    return quote
-        if NestedTests.run_nested_test($code, $name)
-            return :restart
-        end
-    end
 end
 
 """
@@ -77,41 +67,89 @@ function matches_prefixes()::Bool
     return false
 end
 
-function run_nested_test(code::Function, name::AbstractString)::Bool
+"""
+    nested_test(name::String) do ... end
+
+Run tests in a nested environment. The test can use any of the variables defined in its parent test(s). Any changes made
+to these variables will be isolated from other sibling nested tests in this level, but will be visible to descendant
+nested tests.
+"""
+function nested_test(code::Function, name::AbstractString)::Nothing
+    if depth == 0
+        top_nested_test(code, name)
+    else
+        deep_nested_test(code, name)
+    end
+    return nothing
+end
+
+function top_nested_test(code::Function, name::AbstractString)::Nothing
+    global full_name
+    global test_names
     global this_test
     global next_test
     global depth
+    global cases
     global errors
 
-    if depth == 0
-        @assert isempty(test_names)
-        @assert isempty(next_test)
-        @assert isempty(this_test)
-        @assert errors == 0
+    @assert full_name == ""
+    @assert isempty(test_names)
+    @assert isempty(next_test)
+    @assert isempty(this_test)
+    @assert depth == 0
+    @assert cases == 0
+    @assert errors == 0
 
+    try
+        start_time_ns = time_ns()
         push!(this_test, 0)
         push!(next_test, 1)
         depth = 1
 
         while next_test[1] < 2
+            @debug "Look for next test..."
             this_test[1] = 0
-            run_nested_test(code, name)
+            try
+                deep_nested_test(code, name)
+            catch exception
+                if !(exception isa DoneNestedTestException)
+                    rethrow(exception)  # untested
+                end
+                cases += 1
+            end
             @assert length(this_test) == 1
         end
 
-        caught_errors = errors
-
         @assert isempty(test_names)
+        if errors > 0
+            throw(Test.FallbackTestSetException("$(name)/... : $(errors) failed out of $(cases) test cases"))
+        end
+
+        elapsed_time_s = (time_ns() - start_time_ns) / 1e9
+        printstyled(
+            "$(name)/... : all $(cases) test cases passed in $(@sprintf("%.2f", elapsed_time_s)) seconds\n";
+            color = :green,
+        )
+        return nothing
+
+    finally
+        full_name = ""
+        empty!(test_names)
         empty!(next_test)
         empty!(this_test)
         depth = 0
+        cases = 0
         errors = 0
-
-        if caught_errors > 0
-            throw(Test.FallbackTestSetException("Tests failed with $(caught_errors) error(s)"))
-        end
-        return false
     end
+end
+
+function deep_nested_test(code::Function, name::AbstractString)::Nothing
+    global full_name
+    global test_names
+    global this_test
+    global next_test
+    global depth
+    global errors
 
     @assert length(this_test) == depth
     this_test[depth] += 1
@@ -121,13 +159,14 @@ function run_nested_test(code::Function, name::AbstractString)::Bool
     end
     @assert length(next_test) >= depth
 
-    if this_test < next_test[1:depth]
-        return false
-    end
-
     push!(test_names, name)
-    global full_name
     full_name = join(test_names, "/")
+
+    if this_test < next_test[1:depth]
+        @debug "Skip $(full_name)..."
+        pop!(test_names)
+        return nothing
+    end
 
     if length(next_test) == depth
         next_test = copy(next_test)
@@ -136,22 +175,28 @@ function run_nested_test(code::Function, name::AbstractString)::Bool
 
     depth += 1
     push!(this_test, 0)
-    is_done = true
 
+    is_done = false
     try
         if matches_prefixes()
-            is_done = code() != :restart
+            code()
+        else
+            @debug "Filter $(full_name)..."
         end
+        is_done = true
     catch exception
         if exception isa Test.FallbackTestSetException
+            is_done = true
             global errors
             errors += 1
         else
             rethrow(exception)
         end
     finally
-        depth -= 1
+        full_name = "fnord"
+        pop!(test_names)
         pop!(this_test)
+        depth -= 1
 
         if is_done
             if length(this_test) < length(next_test)
@@ -161,11 +206,9 @@ function run_nested_test(code::Function, name::AbstractString)::Bool
                 next_test[end] += 1
             end
         end
-
-        pop!(test_names)
     end
 
-    return true
+    throw(DoneNestedTestException())
 end
 
 end # module

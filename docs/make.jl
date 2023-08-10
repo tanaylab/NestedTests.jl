@@ -8,6 +8,7 @@ using Documenter
 push!(LOAD_PATH, "..")
 
 using NestedTests
+using Pkg
 
 for file in readdir("docs"; join = true)
     if !endswith(file, "make.jl")
@@ -15,15 +16,18 @@ for file in readdir("docs"; join = true)
     end
 end
 
+PROJECT_TOML = Pkg.TOML.parsefile("Project.toml")
+NAME = PROJECT_TOML["name"]
+AUTHORS = PROJECT_TOML["authors"]
+
 makedocs(;
-    authors = "Oren Ben-Kiki",
-    repo = "https://github.com/tanaylab/NestedTests.jl/blob/main{path}?plain=1#L{line}",
+    authors = join(" ", AUTHORS),
     source = "../src",
     clean = true,
     doctest = true,
     modules = [NestedTests],
     highlightsig = true,
-    sitename = "NestedTests.jl",
+    sitename = "$(NAME).jl",
     draft = false,
     strict = true,
     linkcheck = true,

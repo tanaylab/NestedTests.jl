@@ -5,35 +5,34 @@ using NestedTests
 lines = String[]
 
 function all_tests()::Nothing
-    @nested_test("top") do
+    nested_test("top") do
         top_v = 1
-        push!(Main.lines, "---")
-        push!(Main.lines, "$(test_name()) top_v: $(top_v)")
+        push!(lines, "---")
+        push!(lines, "$(test_name()) top_v: $(top_v)")
 
-        @nested_test("mid_1") do
+        nested_test("mid_1") do
             mid_v = 1
 
-            push!(Main.lines, "$(test_name()) top_v: $(top_v)")
-            push!(Main.lines, "$(test_name()) mid_v: $(mid_v)")
+            push!(lines, "$(test_name()) top_v: $(top_v)")
+            push!(lines, "$(test_name()) mid_v: $(mid_v)")
 
-            println("Ignore the test failure:")
             @test true == false
 
             @assert false  # untested
         end
 
-        @nested_test("mid_2") do
+        nested_test("mid_2") do
             mid_v = 1
-            push!(Main.lines, "$(test_name()) top_v: $(top_v)")
-            push!(Main.lines, "$(test_name()) mid_v: $(mid_v)")
+            push!(lines, "$(test_name()) top_v: $(top_v)")
+            push!(lines, "$(test_name()) mid_v: $(mid_v)")
 
             for deep in 1:2
-                @nested_test("deep_$(deep)") do
+                nested_test("deep_$(deep)") do
                     deep_v = 1
 
-                    push!(Main.lines, "$(test_name()) top_v: $(top_v)")
-                    push!(Main.lines, "$(test_name()) mid_v: $(mid_v)")
-                    push!(Main.lines, "$(test_name()) deep_v: $(deep_v)")
+                    push!(lines, "$(test_name()) top_v: $(top_v)")
+                    push!(lines, "$(test_name()) mid_v: $(mid_v)")
+                    push!(lines, "$(test_name()) deep_v: $(deep_v)")
 
                     top_v += 1
                     mid_v += 1
@@ -52,7 +51,8 @@ function all_tests()::Nothing
     return nothing
 end
 
-@test_throws "Tests failed with 1 error(s)" begin
+@test_throws "top/... : 1 failed out of 5 test cases" begin
+    println("Ignore the test failure:")
     all_tests()
 end
 
@@ -85,6 +85,7 @@ end
 
 empty!(lines)
 test_prefixes(["top/mid_2"])
+println("\nExpect no test failures:")
 all_tests()
 
 @test lines == [

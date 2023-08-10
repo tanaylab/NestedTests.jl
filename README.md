@@ -1,6 +1,6 @@
-# NestedTests - run tests in nested environments.
+# NestedTests v0.2.0 - run tests in nested environments.
 
-See the [documentation](https://tanaylab.github.io/NestedTests.jl/) for details.
+See the [v0.2.0 documentation](https://tanaylab.github.io/NestedTests.jl/v0.2.0) for details.
 
 ## Motivation
 
@@ -12,23 +12,23 @@ This package is built around this concept. It runs all the leaf test cases, and 
 needed for it, from scratch. That is, all the tests cases are isolated from each other and can freely modify the
 prepared test data.
 
-The main macro of this package is [`@nested_test`](@ref), which introduces a new sub-test to run. In addition,
-you can always get the full path name of the current test environment using [`test_name`](@ref). For example,
-consider the following:
+The main function of this package is [`nested_test`](@ref), which introduces a new sub-test to run. In addition, you can
+always get the full path name of the current test environment using [`test_name`](@ref). For example, consider the
+following:
 
 ```julia
-@nested_test("top") do
+nested_test("top") do
     db = create_temporary_database()
     @assert test_name() == "top"
     @test is_valid_database(db)
 
-    @nested_test("simple operations") do
+    nested_test("simple operations") do
         @assert test_name() == "top/simple operations"
         fill_simple_operations_data(db)
         @test simple_operations_work(db)
     end
 
-    @nested_test("complex operations") do
+    nested_test("complex operations") do
         @assert test_name() == "top/complex operations"
         fill_complex_operations_data(db)
         @test complex_operations_work(db)
@@ -44,6 +44,13 @@ any reason (including failed `@test` assertions), then its child tests are skipp
 
 You can also restrict the set of test cases that will be executed by specifying a list of prefixes, e.g.
 `test_prefixes(["top"])` will restrict the executed tests to only cases nested under `top`.
+
+NOTE: Don't try to wrap `nested_test` inside a `@testset` - it won't work since `@testset` takes over the failed `@test`
+assertions making it difficult for the `nested_test` to tell when a test case failed. It would have been nice to
+integrate both systems so that each nested test case would be a `@testset`, or at least the top-level nested test case
+would be, but this requires deep integration with the implementation of `@testset`. If someone wants to take a stab at
+this, pull requests are welcome :-) For now we print the total number of passed/failed test cases (not `@test`
+assertions) at the end, together with the elapsed time.
 
 ## Installation
 
