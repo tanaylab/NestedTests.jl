@@ -84,6 +84,10 @@ end
 ]
 
 empty!(lines)
+test_prefixes(["other"])
+all_tests()
+@test isempty(lines)
+
 test_prefixes(["top/mid_2"])
 println("\nExpect no test failures:")
 all_tests()

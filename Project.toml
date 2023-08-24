@@ -1,7 +1,7 @@
 name = "NestedTests"
 uuid = "c7752788-e2db-4f03-8189-845608b41f97"
 authors = ["Oren Ben-Kiki <oren@ben-kiki.org>"]
-version = "0.2.0"
+version = "0.3.0"
 
 [deps]
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"

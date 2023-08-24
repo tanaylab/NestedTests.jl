@@ -44,8 +44,7 @@ function test_name()::String
     return full_name
 end
 
-function matches_prefix(prefix_names::Vector{SubString{String}})::Bool
-    global test_names
+function matches_prefix(test_names::Vector{String}, prefix_names::Vector{SubString{String}})::Bool
     for (test_name, prefix_name) in zip(test_names, prefix_names)
         if test_name != prefix_name
             return false
@@ -54,13 +53,13 @@ function matches_prefix(prefix_names::Vector{SubString{String}})::Bool
     return true
 end
 
-function matches_prefixes()::Bool
+function matches_prefixes(test_names::Vector{String})::Bool
     global run_prefixes
     if isempty(run_prefixes)
         return true
     end
     for prefix in run_prefixes
-        if matches_prefix(prefix)
+        if matches_prefix(test_names, prefix)
             return true
         end
     end
@@ -99,6 +98,10 @@ function top_nested_test(code::Function, name::AbstractString)::Nothing
     @assert depth == 0
     @assert cases == 0
     @assert errors == 0
+
+    if !matches_prefixes([name])
+        return nothing
+    end
 
     try
         start_time_ns = time_ns()
@@ -178,7 +181,7 @@ function deep_nested_test(code::Function, name::AbstractString)::Nothing
 
     is_done = false
     try
-        if matches_prefixes()
+        if matches_prefixes(test_names)
             code()
         else
             @debug "Filter $(full_name)..."

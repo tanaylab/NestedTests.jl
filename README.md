@@ -1,6 +1,6 @@
-# NestedTests v0.2.0 - run tests in nested environments.
+# NestedTests v0.3.0 - run tests in nested environments.
 
-See the [v0.2.0 documentation](https://tanaylab.github.io/NestedTests.jl/v0.2.0) for details.
+See the [v0.3.0 documentation](https://tanaylab.github.io/NestedTests.jl/v0.3.0) for details.
 
 ## Motivation
 
