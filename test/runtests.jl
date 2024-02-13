@@ -84,6 +84,18 @@ end
 ]
 
 empty!(lines)
+
+@test_throws "top/... : 1 failed out of 1 test cases" begin
+    println("Ignore the test failure:")
+    abort_on_first_failure(true)
+    all_tests()
+end
+abort_on_first_failure(false)
+
+@test lines == ["---", "top top_v: 1", "top/mid_1 top_v: 1", "top/mid_1 mid_v: 1"]
+
+empty!(lines)
+
 test_prefixes(["other"])
 all_tests()
 @test isempty(lines)

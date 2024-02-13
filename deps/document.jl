@@ -31,7 +31,6 @@ REPO = "https://github.com/tanaylab/$(NAME).jl"
 
 makedocs(;
     authors = join(" ", AUTHORS),
-    repo = "$(REPO)/blob/main{path}?plain=1#L{line}",
     build = "../docs/v$(VERSION)",
     source = "../src",
     clean = true,
@@ -40,9 +39,8 @@ makedocs(;
     highlightsig = true,
     sitename = "$(NAME).jl v$(VERSION)",
     draft = false,
-    strict = true,
     linkcheck = true,
-    format = Documenter.HTML(; prettyurls = false),
+    format = Documenter.HTML(; repolink = "$(REPO)/blob/main{path}?plain=1#L{line}", prettyurls = false),
     pages = ["index.md"],
 )
 

@@ -1,6 +1,6 @@
-# NestedTests v0.3.0 - run tests in nested environments.
+# NestedTests v0.4.0 - run tests in nested environments.
 
-See the [v0.3.0 documentation](https://tanaylab.github.io/NestedTests.jl/v0.3.0) for details.
+See the [v0.4.0 documentation](https://tanaylab.github.io/NestedTests.jl/v0.4.0) for details.
 
 ## Motivation
 
@@ -42,8 +42,9 @@ cases to access the `db` variable from the top level test case. However, the fra
 of the leaf tests will get a fresh database, isolating the leaf tests from each other. If a parent test case fails for
 any reason (including failed `@test` assertions), then its child tests are skipped.
 
-You can also restrict the set of test cases that will be executed by specifying a list of prefixes, e.g.
-`test_prefixes(["top"])` will restrict the executed tests to only cases nested under `top`.
+If you call `abort_on_first_failure(true)`, then the first failed test will abort execution. You can also restrict
+the set of test cases that will be executed by specifying a list of prefixes, e.g. `test_prefixes(["top"])` will
+restrict the executed tests to only cases nested under `top`.
 
 NOTE: Don't try to wrap `nested_test` inside a `@testset` - it won't work since `@testset` takes over the failed `@test`
 assertions making it difficult for the `nested_test` to tell when a test case failed. It would have been nice to

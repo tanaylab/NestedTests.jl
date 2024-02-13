@@ -6,9 +6,24 @@ module NestedTests
 export nested_test
 export test_name
 export test_prefixes
+export abort_on_first_failure
 
 using Printf
 using Test
+
+ABORT_ON_FIRST_FAILURE::Bool = false
+
+"""
+    abort_on_first_failure(abort::Bool)::Bool
+
+Specify whether to abort the execution when encountering a test failure (by default, `false`). Returns the previous
+setting.
+"""
+function abort_on_first_failure(abort::Bool)::Bool
+    global ABORT_ON_FIRST_FAILURE
+    previous = ABORT_ON_FIRST_FAILURE
+    return ABORT_ON_FIRST_FAILURE = abort
+end
 
 run_prefixes = Vector{Vector{SubString{String}}}()
 full_name = ""
@@ -109,7 +124,7 @@ function top_nested_test(code::Function, name::AbstractString)::Nothing
         push!(next_test, 1)
         depth = 1
 
-        while next_test[1] < 2
+        while next_test[1] < 2 && (!ABORT_ON_FIRST_FAILURE || errors == 0)
             @debug "Look for next test..."
             this_test[1] = 0
             try
